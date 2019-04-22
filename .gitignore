@@ -2,4 +2,4 @@
 env
 .python-version
 .vscode
-prediction.csv
+prediction.txt
