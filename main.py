@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
 from sklearn.ensemble import RandomForestRegressor, IsolationForest
 from sklearn.svm import OneClassSVM
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import HuberRegressor, Lasso
+from sklearn.linear_model import HuberRegressor, Lasso, RidgeCV
 from sklearn.decomposition import PCA
 
 import lightgbm as lgb
@@ -24,13 +24,13 @@ from scipy.sparse import hstack
 def xgb_train(X_train, y_train):
     xgtrain = xgb.DMatrix(X_train, y_train)
     params = {
-        'eta': 0.1,
-        'max_depth': 2,
+        'eta': 0.03,
+        'max_depth': 3,
         'subsample': 0.9,
         'colsample_bylevel': 0.9,
         'eval_metric': 'rmse',
     }
-    bst = xgb.train(params, xgtrain, 100)
+    bst = xgb.train(params, xgtrain, 200)
     return bst
 
 def lgb_train(X_train, y_train):
@@ -93,11 +93,8 @@ def train():
     with open('./data/zhengqi_train.txt') as file:
         dataset = pd.read_csv(file, sep='\t')
 
-    train_dataset = dataset.sample(frac=0.8, random_state=40)
+    train_dataset = dataset.sample(frac=0.8, random_state=0)
     test_dataset = dataset.drop(train_dataset.index)
-
-    # train_dataset.drop(["V5", "V9", "V11", "V17", "V22", "V28"], axis=1, inplace=True)
-    # test_dataset.drop(["V5", "V9", "V11", "V17", "V22", "V28"], axis=1, inplace=True)
 
     train_labels = train_dataset.pop('target')
     test_labels = test_dataset.pop('target')
@@ -108,58 +105,30 @@ def train():
     y_train = train_labels.values
     y_test = test_labels.values
 
-    pol = PolynomialFeatures(2, include_bias=False)
-    pol.fit(X_train)
-    X_train = pol.transform(X_train)
-    X_test = pol.transform(X_test)
-
-    train_dataset_new = pd.DataFrame(X_train)
-    test_dataset_new = pd.DataFrame(X_test)
-
-    # droped_columns = []
-    # for i in range(0, len(train_dataset_new.columns)):
-    #     if i < 32:
-    #         continue
-    #     if not i in [262, 274, 101, 130, 113, 492, 413, 35, 369, 138, 152, 40,
-    #                 355, 328, 272, 317, 484, 486, 125, 65, 71, 537, 128]:
-    #         droped_columns.append(i)
-
-    # train_dataset_new.drop(droped_columns, axis=1, inplace=True)
-    # test_dataset_new.drop(droped_columns, axis=1, inplace=True)
-
-    X_train = train_dataset_new.values
-    X_test = test_dataset_new.values
-
-    scaler = StandardScaler()
+    scaler = MinMaxScaler()
     scaler.fit(X_train)
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(X_test)
 
-    bst = lgb_train(X_train, y_train)
-    y_pred_1 = lgb_predit(bst, X_test)
+    lbst = lgb_train(X_train, y_train)
+    y_pred_1 = lgb_predit(lbst, X_test)
     print(mean_squared_error(y_pred_1, y_test))
 
-    lasso = Lasso(alpha=0.01)
-    lasso.fit(X_train, y_train)
-    y_pred_2 = lasso.predict(X_test)
-    print(mean_squared_error(y_pred_2, y_test))
-
-    # X_train = train_dataset.values
-    # X_test = test_dataset.values
-
-    # scaler = StandardScaler()
-    # scaler.fit(X_train)
-    # X_train = scaler.transform(X_train)
-    # X_test = scaler.transform(X_test)
-
-    X_train_new, X_test_new = generate_new_feature(X_train, y_train, X_test)
+    # lasso = Lasso(alpha=0.01)
+    # lasso.fit(X_train, y_train)
+    # y_pred_2 = lasso.predict(X_test)
+    # print(mean_squared_error(y_pred_2, y_test))
 
     lr = HuberRegressor()
-    lr.fit(X_train_new, y_train)
-    y_pred_3 = lr.predict(X_test_new)
+    lr.fit(X_train, y_train)
+    y_pred_3 = lr.predict(X_test)
     print(mean_squared_error(y_pred_3, y_test))
 
-    y_pred = np.mean([y_pred_1, y_pred_2, y_pred_3], axis=0)
+    xbst = xgb_train(X_train, y_train)
+    y_pred_4 = xgb_predict(xbst, X_test)
+    print(mean_squared_error(y_pred_4, y_test))
+
+    y_pred = np.mean([y_pred_1, y_pred_3, y_pred_4], axis=0)
     print(mean_squared_error(y_pred, y_test))
 
 
@@ -170,9 +139,6 @@ def main():
     with open('./data/zhengqi_test.txt') as file:
         test_dataset = pd.read_csv(file, sep='\t')
 
-    # train_dataset.drop(["V5", "V9", "V11", "V17", "V22", "V28"], axis=1, inplace=True)
-    # test_dataset.drop(["V5", "V9", "V11", "V17", "V22", "V28"], axis=1, inplace=True)
-
     train_labels = train_dataset.pop('target')
 
     X_train = train_dataset.values
@@ -180,55 +146,26 @@ def main():
 
     y_train = train_labels.values
 
-    pol = PolynomialFeatures(2, include_bias=False)
-    pol.fit(X_train)
-    X_train = pol.transform(X_train)
-    X_test = pol.transform(X_test)
-
-    train_dataset_new = pd.DataFrame(X_train)
-    test_dataset_new = pd.DataFrame(X_test)
-
-    # droped_columns = []
-    # for i in range(0, len(train_dataset_new.columns)):
-    #     if i < 32:
-    #         continue
-    #     if not i in [262, 274, 101, 130, 113, 492, 413, 35, 369, 138, 152, 40,
-    #                 355, 328, 272, 317, 484, 486, 125, 65, 71, 537, 128]:
-    #         droped_columns.append(i)
-
-    # train_dataset_new.drop(droped_columns, axis=1, inplace=True)
-    # test_dataset_new.drop(droped_columns, axis=1, inplace=True)
-
-    X_train = train_dataset_new.values
-    X_test = test_dataset_new.values
-
-    scaler = StandardScaler()
+    scaler = MinMaxScaler()
     scaler.fit(X_train)
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(X_test)
 
-    bst = lgb_train(X_train, y_train)
-    y_pred_1 = lgb_predit(bst, X_test)
+    lbst = lgb_train(X_train, y_train)
+    y_pred_1 = lgb_predit(lbst, X_test)
 
-    lasso = Lasso(alpha=0.01)
-    lasso.fit(X_train, y_train)
-    y_pred_2 = lasso.predict(X_test)
+    # lasso = Lasso(alpha=0.01)
+    # lasso.fit(X_train, y_train)
+    # y_pred_2 = lasso.predict(X_test)
 
-    # X_train = train_dataset.values
-    # X_test = test_dataset.values
-
-    # scaler = StandardScaler()
-    # scaler.fit(X_train)
-    # X_train = scaler.transform(X_train)
-    # X_test = scaler.transform(X_test)
-
-    X_train_new, X_test_new = generate_new_feature(X_train, y_train, X_test)
     lr = HuberRegressor()
-    lr.fit(X_train_new, y_train)
-    y_pred_3 = lr.predict(X_test_new)
+    lr.fit(X_train, y_train)
+    y_pred_3 = lr.predict(X_test)
 
-    y_pred = np.mean([y_pred_1, y_pred_2, y_pred_3], axis=0)
+    xbst = xgb_train(X_train, y_train)
+    y_pred_4 = xgb_predict(xbst, X_test)
 
+    y_pred = np.mean([y_pred_1, y_pred_3, y_pred_4], axis=0)
     save_prediction(y_pred)
 
 if __name__ == "__main__":
