@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
-from sklearn.ensemble import RandomForestRegressor, IsolationForest
+from sklearn.ensemble import RandomForestRegressor, IsolationForest, ExtraTreesRegressor
 from sklearn.svm import OneClassSVM
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import HuberRegressor, Lasso, RidgeCV
@@ -99,6 +99,10 @@ def train():
     train_labels = train_dataset.pop('target')
     test_labels = test_dataset.pop('target')
 
+    # V27?
+    train_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
+    test_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
+
     X_train = train_dataset.values
     X_test = test_dataset.values
 
@@ -124,11 +128,26 @@ def train():
     y_pred_3 = lr.predict(X_test)
     print(mean_squared_error(y_pred_3, y_test))
 
-    xbst = xgb_train(X_train, y_train)
-    y_pred_4 = xgb_predict(xbst, X_test)
-    print(mean_squared_error(y_pred_4, y_test))
+    # xbst = xgb_train(X_train, y_train)
+    # y_pred_4 = xgb_predict(xbst, X_test)
+    # print(mean_squared_error(y_pred_4, y_test))
 
-    y_pred = np.mean([y_pred_1, y_pred_3, y_pred_4], axis=0)
+    etr = ExtraTreesRegressor(n_estimators=100)
+    etr.fit(X_train, y_train)
+    y_pred_5 = etr.predict(X_test)
+    print(mean_squared_error(y_pred_5, y_test))
+
+    y_pred_train_1 = lgb_predit(lbst, X_train)
+    y_pred_train_3 = lr.predict(X_train)
+    y_pred_train_5 = etr.predict(X_train)
+
+    stacked_train = np.array([y_pred_train_1, y_pred_train_3, y_pred_train_5]).transpose()
+    stacked_test = np.array([y_pred_1, y_pred_3, y_pred_5]).transpose()
+    stacked_xbst = xgb_train(stacked_train, y_train)
+    y_pred = xgb_predict(stacked_xbst, stacked_test)
+    print(mean_squared_error(y_pred, y_test))
+
+    y_pred = np.mean([y_pred_1, y_pred_3, y_pred_5], axis=0)
     print(mean_squared_error(y_pred, y_test))
 
 
@@ -140,6 +159,10 @@ def main():
         test_dataset = pd.read_csv(file, sep='\t')
 
     train_labels = train_dataset.pop('target')
+
+    # V27?
+    train_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
+    test_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
 
     X_train = train_dataset.values
     X_test = test_dataset.values
@@ -162,10 +185,23 @@ def main():
     lr.fit(X_train, y_train)
     y_pred_3 = lr.predict(X_test)
 
-    xbst = xgb_train(X_train, y_train)
-    y_pred_4 = xgb_predict(xbst, X_test)
+    # xbst = xgb_train(X_train, y_train)
+    # y_pred_4 = xgb_predict(xbst, X_test)
 
-    y_pred = np.mean([y_pred_1, y_pred_3, y_pred_4], axis=0)
+    etr = ExtraTreesRegressor(n_estimators=100)
+    etr.fit(X_train, y_train)
+    y_pred_5 = etr.predict(X_test)
+
+    y_pred_train_1 = lgb_predit(lbst, X_train)
+    y_pred_train_3 = lr.predict(X_train)
+    y_pred_train_5 = etr.predict(X_train)
+
+    stacked_train = np.array([y_pred_train_1, y_pred_train_3, y_pred_train_5]).transpose()
+    stacked_test = np.array([y_pred_1, y_pred_3, y_pred_5]).transpose()
+    stacked_xbst = xgb_train(stacked_train, y_train)
+    y_pred = xgb_predict(stacked_xbst, stacked_test)
+
+    # y_pred = np.mean([y_pred_1, y_pred_3, y_pred_5], axis=0)
     save_prediction(y_pred)
 
 if __name__ == "__main__":
