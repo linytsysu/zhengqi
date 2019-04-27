@@ -88,6 +88,25 @@ def generate_new_feature(X_train, y_train, X_test):
 
     return X_train_new, X_test_new
 
+def polynomial_feature(X_train, X_test):
+    pol = PolynomialFeatures(2, include_bias=False)
+    pol.fit(X_train)
+    X_train = pol.transform(X_train)
+    X_test = pol.transform(X_test)
+    train_dataset_new = pd.DataFrame(X_train)
+    test_dataset_new = pd.DataFrame(X_test)
+    dropped_columns = []
+    columns = np.array(train_dataset_new.columns)
+    for label in columns:
+        if label <= 35:
+            continue
+        if not label in [39, 45, 73, 114, 128, 147, 157, 327, 340, 470]:
+            dropped_columns.append(label)
+    train_dataset_new.drop(dropped_columns, axis=1, inplace=True)
+    test_dataset_new.drop(dropped_columns, axis=1, inplace=True)
+    X_train = train_dataset_new.values
+    X_test = test_dataset_new.values
+    return X_train, X_test
 
 def train():
     with open('./data/zhengqi_train.txt') as file:
@@ -100,8 +119,8 @@ def train():
     test_labels = test_dataset.pop('target')
 
     # V27?
-    train_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
-    test_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
+    train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     X_train = train_dataset.values
     X_test = test_dataset.values
@@ -116,26 +135,26 @@ def train():
 
     lbst = lgb_train(X_train, y_train)
     y_pred_1 = lgb_predit(lbst, X_test)
-    print(mean_squared_error(y_pred_1, y_test))
+    print('lightgbm: ', mean_squared_error(y_pred_1, y_test))
 
     # lasso = Lasso(alpha=0.01)
     # lasso.fit(X_train, y_train)
     # y_pred_2 = lasso.predict(X_test)
-    # print(mean_squared_error(y_pred_2, y_test))
+    # print('lasso: ', mean_squared_error(y_pred_2, y_test))
 
     lr = HuberRegressor()
     lr.fit(X_train, y_train)
     y_pred_3 = lr.predict(X_test)
-    print(mean_squared_error(y_pred_3, y_test))
+    print('huber regression: ', mean_squared_error(y_pred_3, y_test))
 
     # xbst = xgb_train(X_train, y_train)
     # y_pred_4 = xgb_predict(xbst, X_test)
-    # print(mean_squared_error(y_pred_4, y_test))
+    # print('xgboost: ', mean_squared_error(y_pred_4, y_test))
 
     etr = ExtraTreesRegressor(n_estimators=100)
     etr.fit(X_train, y_train)
     y_pred_5 = etr.predict(X_test)
-    print(mean_squared_error(y_pred_5, y_test))
+    print('extra tree regression: ', mean_squared_error(y_pred_5, y_test))
 
     y_pred_train_1 = lgb_predit(lbst, X_train)
     y_pred_train_3 = lr.predict(X_train)
@@ -145,10 +164,10 @@ def train():
     stacked_test = np.array([y_pred_1, y_pred_3, y_pred_5]).transpose()
     stacked_xbst = xgb_train(stacked_train, y_train)
     y_pred = xgb_predict(stacked_xbst, stacked_test)
-    print(mean_squared_error(y_pred, y_test))
+    print('stacking: ', mean_squared_error(y_pred, y_test))
 
     y_pred = np.mean([y_pred_1, y_pred_3, y_pred_5], axis=0)
-    print(mean_squared_error(y_pred, y_test))
+    print('mean: ', mean_squared_error(y_pred, y_test))
 
 
 def main():
@@ -161,8 +180,8 @@ def main():
     train_labels = train_dataset.pop('target')
 
     # V27?
-    train_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
-    test_dataset.drop(labels=['V5', 'V22'], axis=1, inplace=True)
+    train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     X_train = train_dataset.values
     X_test = test_dataset.values
