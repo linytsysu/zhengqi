@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.ensemble import RandomForestRegressor, IsolationForest, ExtraTreesRegressor
 from sklearn.svm import OneClassSVM
 from sklearn.neighbors import KNeighborsRegressor
@@ -112,15 +112,14 @@ def train():
     with open('./data/zhengqi_train.txt') as file:
         dataset = pd.read_csv(file, sep='\t')
 
-    train_dataset = dataset.sample(frac=0.8, random_state=0)
+    train_dataset = dataset.sample(frac=0.8, random_state=2019)
     test_dataset = dataset.drop(train_dataset.index)
 
     train_labels = train_dataset.pop('target')
     test_labels = test_dataset.pop('target')
 
-    # V27?
-    train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
-    test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    # train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    # test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     X_train = train_dataset.values
     X_test = test_dataset.values
@@ -128,8 +127,8 @@ def train():
     y_train = train_labels.values
     y_test = test_labels.values
 
-    scaler = MinMaxScaler()
-    scaler.fit(X_train)
+    scaler = StandardScaler()
+    scaler.fit(np.concatenate((X_train, X_test), axis=0))
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(X_test)
 
@@ -151,7 +150,7 @@ def train():
     # y_pred_4 = xgb_predict(xbst, X_test)
     # print('xgboost: ', mean_squared_error(y_pred_4, y_test))
 
-    etr = ExtraTreesRegressor(n_estimators=100)
+    etr = ExtraTreesRegressor(n_estimators=100, random_state=2019)
     etr.fit(X_train, y_train)
     y_pred_5 = etr.predict(X_test)
     print('extra tree regression: ', mean_squared_error(y_pred_5, y_test))
@@ -179,17 +178,16 @@ def main():
 
     train_labels = train_dataset.pop('target')
 
-    # V27?
-    train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
-    test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    # train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    # test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     X_train = train_dataset.values
     X_test = test_dataset.values
 
     y_train = train_labels.values
 
-    scaler = MinMaxScaler()
-    scaler.fit(X_train)
+    scaler = StandardScaler()
+    scaler.fit(np.concatenate((X_train, X_test), axis=0))
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(X_test)
 
