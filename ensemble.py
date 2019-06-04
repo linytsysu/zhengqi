@@ -5,14 +5,15 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-
+from sklearn.neural_network import MLPRegressor
+from model import Model
 from utils import save_prediction
 
-class Ensemble:
+class Ensemble(Model):
     def __init__(self, model_list):
         self.model_list = model_list
         self.models = []
-        self.ens_model = RandomForestRegressor(n_estimators=100, random_state=2019)
+        self.ens_model = MLPRegressor(hidden_layer_sizes=(128,), verbose=True, alpha=0.001, tol=1e-4, random_state=2019)
 
     def fit_eval(self, X_train, y_train, X_eval, y_eval):
         stacked_train_preds = []
