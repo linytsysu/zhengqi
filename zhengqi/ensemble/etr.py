@@ -12,7 +12,7 @@ from utils import save_prediction
 
 class ETR_Model(Model):
     def __init__(self):
-        self.etr_model = ExtraTreesRegressor(n_estimators=200, random_state=2019)
+        self.etr_model = ExtraTreesRegressor(n_estimators=150, random_state=2019)
 
     def fit_eval(self, X_train, y_train, X_eval, y_eval):
         self.etr_model.fit(X_train, y_train)

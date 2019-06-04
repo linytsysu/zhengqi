@@ -15,8 +15,8 @@ def mse(labels, preds):
 
 class LGB_Model(Model):
     def __init__(self):
-        self.lgb_model = lgb.LGBMRegressor(boosting_type="gbdt", num_leaves=15, reg_alpha=0, reg_lambda=0.01,
-            subsample=0.8, colsample_bytree=0.8, subsample_freq=1, min_child_samples=20, metric="None",
+        self.lgb_model = lgb.LGBMRegressor(boosting_type="gbdt", num_leaves=7, reg_alpha=0, reg_lambda=0.1,
+            subsample=0.8, colsample_bytree=0.8, subsample_freq=1, min_child_samples=10, metric="None",
             learning_rate=0.1, n_estimators=1000, random_state=2019)
 
     def fit_eval(self, X_train, y_train, X_eval, y_eval):

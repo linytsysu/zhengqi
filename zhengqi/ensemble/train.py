@@ -12,8 +12,10 @@ from model import Model
 def train_eval(model):
     if not isinstance(model, Model):
         return
-    with open('./data/zhengqi_train.txt') as file:
+    with open('../../data/zhengqi_train.txt') as file:
         dataset = pd.read_csv(file, sep='\t')
+
+    dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     train_dataset   = dataset.sample(frac=0.8, random_state=2019)
     eval_dataset    = dataset.drop(train_dataset.index)
@@ -39,11 +41,14 @@ def generate_submission(model):
     if not isinstance(model, Model):
         return
 
-    with open('./data/zhengqi_train.txt') as file:
+    with open('../../data/zhengqi_train.txt') as file:
         train_dataset = pd.read_csv(file, sep='\t')
 
-    with open('./data/zhengqi_test.txt') as file:
+    with open('../../data/zhengqi_test.txt') as file:
         test_dataset = pd.read_csv(file, sep='\t')
+
+    train_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
+    test_dataset.drop(labels=['V5', 'V17', 'V22'], axis=1, inplace=True)
 
     train_labels = train_dataset.pop('target')
 

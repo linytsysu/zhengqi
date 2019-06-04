@@ -16,7 +16,7 @@ def mse(preds, dtrain):
 
 class XGB_Model(Model):
     def __init__(self):
-        self.xgb_model = xgb.XGBRegressor(reg_alpha=0, reg_lambda=0.01, n_estimators=1000, random_state=2019,
+        self.xgb_model = xgb.XGBRegressor(reg_alpha=0, reg_lambda=0.1, n_estimators=1000, random_state=2019,
             subsample=0.8, colsample_bytree=0.8, learning_rate=0.1)
 
     def fit_eval(self, X_train, y_train, X_eval, y_eval):
