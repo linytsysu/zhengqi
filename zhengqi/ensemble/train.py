@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import mean_squared_error
 from utils import save_prediction
+from autoencoder import generate_new_feature
 
 from model import Model
 
@@ -29,12 +30,9 @@ def train_eval(model):
     y_train = train_labels.values
     y_eval  = eval_labels.values
 
-    scaler  = MinMaxScaler()
-    scaler.fit(np.concatenate((X_train, X_eval), axis=0))
-    X_train_scaled  = scaler.transform(X_train)
-    X_eval_scaled   = scaler.transform(X_eval)
+    X_train, X_eval = generate_new_feature(X_train, X_eval)
 
-    model.fit_eval(X_train_scaled, y_train, X_eval_scaled, y_eval)
+    model.fit_eval(X_train, y_train, X_eval, y_eval)
 
 
 def generate_submission(model):
@@ -57,10 +55,7 @@ def generate_submission(model):
 
     X_test = test_dataset.values
 
-    scaler  = MinMaxScaler()
-    scaler.fit(np.concatenate((X_train, X_test), axis=0))
-    X_train = scaler.transform(X_train)
-    X_test  = scaler.transform(X_test)
+    X_train, X_test = generate_new_feature(X_train, X_test)
 
     model.fit(X_train, y_train)
     model.get_submission(X_test)
@@ -71,8 +66,9 @@ if __name__ == "__main__":
     from lgb import LGB_Model
     from xgb import XGB_Model
     from etr import ETR_Model
+    from huber import Huber_Model
 
-    model_list = [('LGB', LGB_Model()), ('XGB', XGB_Model()), ('ETR', ETR_Model())]
+    model_list = [('LGB', LGB_Model()), ('XGB', XGB_Model()), ('ETR', ETR_Model()), ('HUBER', Huber_Model())]
     ens = Ensemble(model_list)
     train_eval(ens)
     generate_submission(ens)
