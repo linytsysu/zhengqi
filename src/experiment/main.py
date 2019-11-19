@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Author: linytsysu
+Score: 0.1246
+"""
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf

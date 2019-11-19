@@ -97,7 +97,7 @@ class AveragingModels(BaseEstimator, RegressorMixin, TransformerMixin):
         return np.mean(predictions, axis=1)
 
 def load_train_data():
-    df = pd.read_csv("../../data/zhengqi_train.txt", header=0, sep="\t")
+    df = pd.read_csv("../../../data/zhengqi_train.txt", header=0, sep="\t")
     #print(df.describe())
     X = df.drop(columns=["target"])
     y = df["target"]
@@ -112,7 +112,7 @@ def load_train_data():
     return X, y
 
 def load_test_data():
-    df = pd.read_csv("../../data/zhengqi_test.txt", header=0, sep="\t")
+    df = pd.read_csv("../../../data/zhengqi_test.txt", header=0, sep="\t")
     #print(df.describe())
     X_test = df
     return X_test
