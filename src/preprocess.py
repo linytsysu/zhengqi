@@ -6,6 +6,9 @@ import numpy as np
 import math
 from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
 
 
 def load_train_data():
@@ -41,8 +44,24 @@ def feature_preprocess(X):
     return X
 
 
-def target_preprocess(y):
-    return y
+def feature_selection(X_train, y_train, X_test):
+    threshold = 0.85
+    vt = VarianceThreshold().fit(X_train)
+    feat_var_threshold = X_train.columns[vt.variances_ > threshold * (1 - threshold)]
+    X_train = X_train[feat_var_threshold]
+    X_test = X_test[feat_var_threshold]
+
+    head_feature_num = 18
+    X_scored = SelectKBest(score_func=f_regression, k='all').fit(X_train, y_train)
+    feature_scoring = pd.DataFrame({
+            'feature': X_train.columns,
+            'score': X_scored.scores_
+        })
+    feat_scored_headnum = feature_scoring.sort_values('score', ascending=False).head(head_feature_num)['feature']
+    X_train = X_train[X_train.columns[X_train.columns.isin(feat_scored_headnum)]]
+    X_test = X_test[X_test.columns[X_test.columns.isin(feat_scored_headnum)]]
+
+    return X_train, X_test
 
 
 def get_data():
@@ -51,8 +70,10 @@ def get_data():
 
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
+
     X_train = all_data.iloc[0: X_train.shape[0]]
     X_test = all_data.iloc[X_train.shape[0]:]
-    y_train = target_preprocess(y_train)
+
+    X_train, X_test = feature_selection(X_train, y_train, X_test)
 
     return X_train, y_train, X_test

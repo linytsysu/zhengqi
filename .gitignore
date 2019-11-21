@@ -2,5 +2,6 @@
 env
 .python-version
 .vscode
-prediction.txt
 __pycache__
+
+*.txt
