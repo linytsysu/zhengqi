@@ -20,8 +20,9 @@ def rmsle_cv(model=None, X_train=None, y_train=None):
 if __name__ == "__main__":
     X_train, y_train, X_test = get_data()
     svr, line, lasso, ENet, KRR1, KRR2, lgbm, xgb, nn = build_model()
-    averaged_models = AveragingModels(models=(svr, KRR2, ENet, lgbm, xgb))
+    averaged_models = AveragingModels(models=(svr, line, lasso, ENet, KRR1, KRR2, lgbm, xgb, nn))
     score = rmsle_cv(averaged_models, X_train, y_train)
+    print('\nAveraged Models Score: %6f, %6f\n'%(np.mean(score), np.std(score)))
 
     averaged_models.fit(X_train, y_train)
     y_pred = averaged_models.predict(X_test)

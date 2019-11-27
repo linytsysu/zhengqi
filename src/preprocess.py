@@ -38,6 +38,7 @@ def feature_preprocess(X):
     X['V6'] = X['V6'].apply(lambda x: math.exp(x))
     X['V7'] = X['V7'].apply(lambda x: math.exp(x))
     X['V8'] = X['V8'].apply(lambda x: math.exp(x))
+
     X['V30'] = np.log1p(X['V30'])
 
     X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
@@ -57,7 +58,8 @@ def feature_selection(X_train, y_train, X_test):
             'feature': X_train.columns,
             'score': X_scored.scores_
         })
-    feat_scored_headnum = feature_scoring.sort_values('score', ascending=False).head(head_feature_num)['feature']
+    feature_scoring = feature_scoring.sort_values('score', ascending=False).reset_index(drop=True)
+    feat_scored_headnum = feature_scoring.head(head_feature_num)['feature']
     X_train = X_train[X_train.columns[X_train.columns.isin(feat_scored_headnum)]]
     X_test = X_test[X_test.columns[X_test.columns.isin(feat_scored_headnum)]]
 

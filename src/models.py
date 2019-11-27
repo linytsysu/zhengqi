@@ -13,6 +13,7 @@ from keras.wrappers.scikit_learn import KerasRegressor
 from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
 from sklearn.pipeline import make_pipeline
 
+seed = 2019
 
 def build_nn():
     model = keras.Sequential()
@@ -25,8 +26,6 @@ def build_nn():
 
 
 def build_model():
-    seed = 2018
-
     svr = make_pipeline(SVR(kernel='linear'))
     line = make_pipeline(LinearRegression())
     lasso = make_pipeline(Lasso(alpha =0.0005, random_state=seed))
@@ -40,7 +39,7 @@ def build_model():
                         reg_alpha=0, reg_lambda=1,
                         subsample=0.8, silent=1,
                         random_state=seed, nthread = 2)
-    nn = KerasRegressor(build_fn=build_nn, nb_epoch=500, batch_size=32, verbose=2)
+    nn = KerasRegressor(build_fn=build_nn, epochs=50, batch_size=32, verbose=0)
 
     return svr, line, lasso, ENet, KRR1, KRR2, lgbm, xgb, nn
 
