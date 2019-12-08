@@ -30,18 +30,18 @@ def load_test_data():
 def feature_preprocess(X):
     X = X.drop(['V5', 'V9', 'V11', 'V17', 'V22', 'V28'], axis=1)
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
+    #scaler = MinMaxScaler(feature_range=(0, 1))
+    #X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
-    X['V0'] = X['V0'].apply(lambda x: math.exp(x))
-    X['V1'] = X['V1'].apply(lambda x: math.exp(x))
-    X['V6'] = X['V6'].apply(lambda x: math.exp(x))
-    X['V7'] = X['V7'].apply(lambda x: math.exp(x))
-    X['V8'] = X['V8'].apply(lambda x: math.exp(x))
+    #X['V0'] = X['V0'].apply(lambda x: math.exp(x))
+    #X['V1'] = X['V1'].apply(lambda x: math.exp(x))
+    #X['V6'] = X['V6'].apply(lambda x: math.exp(x))
+    #X['V7'] = X['V7'].apply(lambda x: math.exp(x))
+    #X['V8'] = X['V8'].apply(lambda x: math.exp(x))
 
-    X['V30'] = np.log1p(X['V30'])
+    #X['V30'] = np.log1p(X['V30'])
 
-    X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
+    #X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
     return X
 
 
