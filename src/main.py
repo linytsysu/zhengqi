@@ -8,6 +8,7 @@ from preprocess import get_data
 from models import build_model, AveragingModels
 from tpot import TPOTRegressor
 from sklearn.model_selection import train_test_split
+from scipy.stats import ks_2samp
 
 
 def rmsle_cv(model=None, X_train=None, y_train=None):
@@ -21,7 +22,11 @@ def rmsle_cv(model=None, X_train=None, y_train=None):
 
 if __name__ == "__main__":
     X_train, y_train, X_test = get_data()
-    pipeline_optimizer = TPOTRegressor(generations=80, population_size=100, cv=5,
+    # for name in X_train.columns:
+    #     statistic, pvalue = ks_2samp(X_train[name].values, X_test[name].values)
+    #     if statistic > 0.4:
+    #         print(name)
+    pipeline_optimizer = TPOTRegressor(generations=100, population_size=100, cv=5,
                                         random_state=42, verbosity=2)
     pipeline_optimizer.fit(X_train, y_train)
     pipeline_optimizer.export('tpot_exported_pipeline.py')
