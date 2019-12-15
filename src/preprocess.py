@@ -50,6 +50,7 @@ def feature_test(X_train, y_train, X_test):
 
 
 def feature_preprocess(X):
+    # feature_test(X_train, y_train, X_test)
     X = X.drop(['V5', 'V9', 'V11', 'V17', 'V22', 'V28'], axis=1)
 
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -92,13 +93,30 @@ def get_data():
     X_train, y_train = load_train_data()
     X_test = load_test_data()
 
+    time_range = 3
+    X_train_new = []
+    for i in range(X_train.shape[0]):
+        if i < time_range:
+            continue
+        X_train_new.append(np.mean(X_train.values[i-time_range: i+1], axis=0))
+    X_test_new = []
+    for i in range(X_test.shape[0]):
+        if i < time_range:
+            X_test_new.append(X_test.values[0])
+        else:
+            X_test_new.append(np.mean(X_test.values[i-time_range: i+1], axis=0))
+
+    X_train = pd.DataFrame(X_train_new, columns=X_train.columns)
+    y_train = y_train[time_range:]
+
+    X_test = pd.DataFrame(X_test_new, columns=X_test.columns)
+
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
 
     X_train = all_data.iloc[0: X_train.shape[0]]
     X_test = all_data.iloc[X_train.shape[0]:]
 
-    # feature_test(X_train, y_train, X_test)
     X_train, X_test = feature_selection(X_train, y_train, X_test)
 
     return X_train, y_train, X_test

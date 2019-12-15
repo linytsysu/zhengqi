@@ -22,10 +22,12 @@ def rmsle_cv(model=None, X_train=None, y_train=None):
 
 if __name__ == "__main__":
     X_train, y_train, X_test = get_data()
+
     # for name in X_train.columns:
     #     statistic, pvalue = ks_2samp(X_train[name].values, X_test[name].values)
     #     if statistic > 0.4:
     #         print(name)
+
     pipeline_optimizer = TPOTRegressor(generations=100, population_size=100, cv=5,
                                         random_state=42, verbosity=2)
     pipeline_optimizer.fit(X_train, y_train)
