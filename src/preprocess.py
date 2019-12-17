@@ -50,7 +50,6 @@ def feature_test(X_train, y_train, X_test):
 
 
 def feature_preprocess(X):
-    # feature_test(X_train, y_train, X_test)
     X = X.drop(['V5', 'V9', 'V11', 'V17', 'V22', 'V28'], axis=1)
 
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -89,10 +88,7 @@ def feature_selection(X_train, y_train, X_test):
     return X_train, X_test
 
 
-def get_data():
-    X_train, y_train = load_train_data()
-    X_test = load_test_data()
-
+def time_series_feature_generation(X_train, y_train, X_test):
     time_range = 3
     X_train_new = []
     for i in range(X_train.shape[0]):
@@ -110,6 +106,15 @@ def get_data():
     y_train = y_train[time_range:]
 
     X_test = pd.DataFrame(X_test_new, columns=X_test.columns)
+
+
+def get_data():
+    X_train, y_train = load_train_data()
+    X_test = load_test_data()
+
+    # feature_test(X_train, y_train, X_test)
+
+    # X_trian, y_train, X_test = time_series_feature_generation(X_train, y_train, X_test)
 
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
