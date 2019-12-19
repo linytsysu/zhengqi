@@ -74,7 +74,7 @@ def feature_selection(X_train, y_train, X_test):
     X_train = X_train[feat_var_threshold]
     X_test = X_test[feat_var_threshold]
 
-    head_feature_num = 18
+    head_feature_num = 22
     X_scored = SelectKBest(score_func=f_regression, k='all').fit(X_train, y_train)
     feature_scoring = pd.DataFrame({
             'feature': X_train.columns,
@@ -89,23 +89,22 @@ def feature_selection(X_train, y_train, X_test):
 
 
 def time_series_feature_generation(X_train, y_train, X_test):
-    time_range = 3
-    X_train_new = []
-    for i in range(X_train.shape[0]):
-        if i < time_range:
-            continue
-        X_train_new.append(np.mean(X_train.values[i-time_range: i+1], axis=0))
-    X_test_new = []
-    for i in range(X_test.shape[0]):
-        if i < time_range:
-            X_test_new.append(X_test.values[0])
-        else:
-            X_test_new.append(np.mean(X_test.values[i-time_range: i+1], axis=0))
+    X_train['V0_DIFF'] = X_train['V0'].diff(periods=3).values
+    X_test['V0_DIFF'] = X_test['V0'].diff(periods=3).values
 
-    X_train = pd.DataFrame(X_train_new, columns=X_train.columns)
-    y_train = y_train[time_range:]
+    X_train['V1_DIFF'] = X_train['V1'].diff(periods=3).values
+    X_test['V1_DIFF'] = X_test['V1'].diff(periods=3).values
 
-    X_test = pd.DataFrame(X_test_new, columns=X_test.columns)
+    X_train['V2_DIFF'] = X_train['V2'].diff(periods=3).values
+    X_test['V2_DIFF'] = X_test['V2'].diff(periods=3).values
+
+    X_train['V8_DIFF'] = X_train['V8'].diff(periods=3).values
+    X_test['V8_DIFF'] = X_test['V8'].diff(periods=3).values
+
+    X_train = X_train.fillna(-1)
+    X_test = X_test.fillna(-1)
+
+    return X_train, y_train, X_test
 
 
 def get_data():
@@ -114,7 +113,7 @@ def get_data():
 
     # feature_test(X_train, y_train, X_test)
 
-    # X_trian, y_train, X_test = time_series_feature_generation(X_train, y_train, X_test)
+    X_train, y_train, X_test = time_series_feature_generation(X_train, y_train, X_test)
 
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
