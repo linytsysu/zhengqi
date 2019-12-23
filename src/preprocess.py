@@ -10,6 +10,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
 import xgboost as xgb
+import talib
 
 
 def load_train_data():
@@ -61,8 +62,6 @@ def feature_preprocess(X):
     X['V7'] = X['V7'].apply(lambda x: math.exp(x))
     X['V8'] = X['V8'].apply(lambda x: math.exp(x))
 
-    X['V30'] = np.log1p(X['V30'])
-
     X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
     return X
 
@@ -82,29 +81,24 @@ def feature_selection(X_train, y_train, X_test):
         })
     feature_scoring = feature_scoring.sort_values('score', ascending=False).reset_index(drop=True)
     feat_scored_headnum = feature_scoring.head(head_feature_num)['feature']
+    print(feat_scored_headnum)
     X_train = X_train[X_train.columns[X_train.columns.isin(feat_scored_headnum)]]
     X_test = X_test[X_test.columns[X_test.columns.isin(feat_scored_headnum)]]
 
     return X_train, X_test
 
 
-def time_series_feature_generation(X_train, y_train, X_test):
-    X_train['V0_DIFF'] = X_train['V0'].diff(periods=3).values
-    X_test['V0_DIFF'] = X_test['V0'].diff(periods=3).values
+def time_series_feature_generation(X):
+    timeperiod = 1
+    if timeperiod > 0:
+        X['SHIFT_V0'] = X['V0'].shift(periods=timeperiod).values
+        X['SHIFT_V1'] = X['V1'].shift(periods=timeperiod).values
+        X['SHIFT_V2'] = X['V2'].shift(periods=timeperiod).values
+        X['SHIFT_V31'] = X['V31'].shift(periods=timeperiod).values
 
-    X_train['V1_DIFF'] = X_train['V1'].diff(periods=3).values
-    X_test['V1_DIFF'] = X_test['V1'].diff(periods=3).values
+    # X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
 
-    X_train['V2_DIFF'] = X_train['V2'].diff(periods=3).values
-    X_test['V2_DIFF'] = X_test['V2'].diff(periods=3).values
-
-    X_train['V8_DIFF'] = X_train['V8'].diff(periods=3).values
-    X_test['V8_DIFF'] = X_test['V8'].diff(periods=3).values
-
-    X_train = X_train.fillna(-1)
-    X_test = X_test.fillna(-1)
-
-    return X_train, y_train, X_test
+    return X
 
 
 def get_data():
@@ -113,13 +107,16 @@ def get_data():
 
     # feature_test(X_train, y_train, X_test)
 
-    X_train, y_train, X_test = time_series_feature_generation(X_train, y_train, X_test)
-
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
 
-    X_train = all_data.iloc[0: X_train.shape[0]]
-    X_test = all_data.iloc[X_train.shape[0]:]
+    all_data = time_series_feature_generation(all_data)
+
+    X_train = pd.DataFrame(all_data.iloc[0: X_train.shape[0]].values, columns=all_data.columns)
+    X_test = pd.DataFrame(all_data.iloc[X_train.shape[0]:].values, columns=all_data.columns)
+
+    X_train = X_train.copy().iloc[1:, :]
+    y_train = pd.Series(y_train.values[1:])
 
     X_train, X_test = feature_selection(X_train, y_train, X_test)
 
