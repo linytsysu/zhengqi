@@ -11,6 +11,7 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
 import xgboost as xgb
 import talib
+import tsfresh as tsf
 
 
 def load_train_data():
@@ -73,7 +74,7 @@ def feature_selection(X_train, y_train, X_test):
     X_train = X_train[feat_var_threshold]
     X_test = X_test[feat_var_threshold]
 
-    head_feature_num = 22
+    head_feature_num = 18
     X_scored = SelectKBest(score_func=f_regression, k='all').fit(X_train, y_train)
     feature_scoring = pd.DataFrame({
             'feature': X_train.columns,
@@ -88,13 +89,25 @@ def feature_selection(X_train, y_train, X_test):
     return X_train, X_test
 
 
-def time_series_feature_generation(X):
-    timeperiod = 1
-    if timeperiod > 0:
-        X['SHIFT_V0'] = X['V0'].shift(periods=timeperiod).values
-        X['SHIFT_V1'] = X['V1'].shift(periods=timeperiod).values
-        X['SHIFT_V2'] = X['V2'].shift(periods=timeperiod).values
-        X['SHIFT_V31'] = X['V31'].shift(periods=timeperiod).values
+def time_series_feature_generation(X, y):
+    # timeperiod = 1
+    # if timeperiod > 0:
+    #     X['SHIFT_V0'] = X['V0'].shift(periods=timeperiod).values
+    #     X['SHIFT_V1'] = X['V1'].shift(periods=timeperiod).values
+    #     X['SHIFT_V2'] = X['V2'].shift(periods=timeperiod).values
+    #     X['SHIFT_V31'] = X['V31'].shift(periods=timeperiod).values
+
+    # X['NEW_2'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V8'].values, X['V31'].values], axis=0, weights=[5, 4, 3, 2, 1])
+    # X['NEW_3'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[1, 2, 3, 4])
+    # X['NEW_4'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[4, 3, 2, 1])
+
+    # new_feature = []
+    # for i in range(X['V0'].shape[0]):
+    #     if i < 1:
+    #         new_feature.append(np.nan)
+    #     else:
+    #         new_feature.append((X['V0'].values[i] - X['V0'].values[i-1]) / X['V0'].values[i])
+    # X['CHANAGES_V1'] = new_feature
 
     # X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
 
@@ -110,14 +123,17 @@ def get_data():
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
 
-    all_data = time_series_feature_generation(all_data)
+    all_data = time_series_feature_generation(all_data, y_train)
 
     X_train = pd.DataFrame(all_data.iloc[0: X_train.shape[0]].values, columns=all_data.columns)
     X_test = pd.DataFrame(all_data.iloc[X_train.shape[0]:].values, columns=all_data.columns)
 
-    X_train = X_train.copy().iloc[1:, :]
-    y_train = pd.Series(y_train.values[1:])
+    # X_train = X_train.copy().iloc[1:, :]
+    # y_train = pd.Series(y_train.values[1:])
 
     X_train, X_test = feature_selection(X_train, y_train, X_test)
+
+    X_train = pd.DataFrame(X_train.iloc[1000:].values, columns=X_train.columns)
+    y_train = pd.Series(y_train.values[1000:])
 
     return X_train, y_train, X_test

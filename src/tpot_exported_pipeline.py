@@ -9,6 +9,15 @@ from sklearn.svm import LinearSVR
 from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 from preprocess import get_data
+from sklearn.model_selection import KFold, cross_val_score
+
+def rmsle_cv(model=None, X_train=None, y_train=None):
+    seed = 2019
+    n_folds = 5
+    kf = KFold(n_folds, shuffle=True, random_state=seed).get_n_splits(X_train)
+    rmse= -cross_val_score(model, X_train, y_train,
+                           scoring="neg_mean_squared_error", cv = kf)
+    return (rmse)
 
 # NOTE: Make sure that the outcome column is labeled 'target' in the data file
 X_train, y_train, X_test = get_data()
@@ -23,6 +32,9 @@ exported_pipeline = make_pipeline(
 )
 # Fix random state for all the steps in exported pipeline
 set_param_recursive(exported_pipeline.steps, 'random_state', 42)
+
+score = rmsle_cv(exported_pipeline, X_train, y_train)
+print('\nAveraged Models Score: %6f, %6f\n'%(np.mean(score), np.std(score)))
 
 exported_pipeline.fit(X_train, y_train)
 y_pred = exported_pipeline.predict(X_test)
