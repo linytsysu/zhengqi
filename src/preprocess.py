@@ -101,15 +101,16 @@ def time_series_feature_generation(X, y):
     # X['NEW_3'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[1, 2, 3, 4])
     # X['NEW_4'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[4, 3, 2, 1])
 
-    # new_feature = []
-    # for i in range(X['V0'].shape[0]):
-    #     if i < 1:
-    #         new_feature.append(np.nan)
-    #     else:
-    #         new_feature.append((X['V0'].values[i] - X['V0'].values[i-1]) / X['V0'].values[i])
-    # X['CHANAGES_V1'] = new_feature
+    for feature_name in X.columns:
+        new_feature = []
+        for i in range(X[feature_name].shape[0]):
+            if i < 1:
+                new_feature.append(np.nan)
+            else:
+                new_feature.append((X[feature_name].values[i] - X[feature_name].values[i-1]))
+        X['CHANAGES_%s'%(feature_name)] = new_feature
 
-    # X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
+    X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
 
     return X
 
@@ -123,8 +124,6 @@ def get_data():
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
 
-    all_data = time_series_feature_generation(all_data, y_train)
-
     X_train = pd.DataFrame(all_data.iloc[0: X_train.shape[0]].values, columns=all_data.columns)
     X_test = pd.DataFrame(all_data.iloc[X_train.shape[0]:].values, columns=all_data.columns)
 
@@ -132,6 +131,11 @@ def get_data():
     # y_train = pd.Series(y_train.values[1:])
 
     X_train, X_test = feature_selection(X_train, y_train, X_test)
+
+    all_data = pd.concat([X_train, X_test])
+    all_data = time_series_feature_generation(all_data, y_train)
+    X_train = pd.DataFrame(all_data.iloc[0: X_train.shape[0]].values, columns=all_data.columns)
+    X_test = pd.DataFrame(all_data.iloc[X_train.shape[0]:].values, columns=all_data.columns)
 
     X_train = pd.DataFrame(X_train.iloc[1000:].values, columns=X_train.columns)
     y_train = pd.Series(y_train.values[1000:])
