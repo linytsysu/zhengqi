@@ -108,7 +108,7 @@ def time_series_feature_generation(X, y):
                 new_feature.append(np.nan)
             else:
                 new_feature.append((X[feature_name].values[i] - X[feature_name].values[i-1]))
-        X['CHANAGES_%s'%(feature_name)] = new_feature
+        X['CHANGES_%s'%(feature_name)] = new_feature
 
     X = pd.DataFrame(preprocessing.scale(X), columns=X.columns)
 
