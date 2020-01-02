@@ -10,8 +10,6 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_regression
 import xgboost as xgb
-import talib
-import tsfresh as tsf
 
 
 def load_train_data():
@@ -90,17 +88,6 @@ def feature_selection(X_train, y_train, X_test):
 
 
 def time_series_feature_generation(X, y):
-    # timeperiod = 1
-    # if timeperiod > 0:
-    #     X['SHIFT_V0'] = X['V0'].shift(periods=timeperiod).values
-    #     X['SHIFT_V1'] = X['V1'].shift(periods=timeperiod).values
-    #     X['SHIFT_V2'] = X['V2'].shift(periods=timeperiod).values
-    #     X['SHIFT_V31'] = X['V31'].shift(periods=timeperiod).values
-
-    # X['NEW_2'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V8'].values, X['V31'].values], axis=0, weights=[5, 4, 3, 2, 1])
-    # X['NEW_3'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[1, 2, 3, 4])
-    # X['NEW_4'] = np.average([X['V0'].values, X['V1'].values, X['V2'].values, X['V31'].values], axis=0, weights=[4, 3, 2, 1])
-
     for feature_name in X.columns:
         new_feature = []
         for i in range(X[feature_name].shape[0]):
@@ -119,16 +106,13 @@ def get_data():
     X_train, y_train = load_train_data()
     X_test = load_test_data()
 
-    # feature_test(X_train, y_train, X_test)
+    feature_test(X_train, y_train, X_test)
 
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
 
     X_train = pd.DataFrame(all_data.iloc[0: X_train.shape[0]].values, columns=all_data.columns)
     X_test = pd.DataFrame(all_data.iloc[X_train.shape[0]:].values, columns=all_data.columns)
-
-    # X_train = X_train.copy().iloc[1:, :]
-    # y_train = pd.Series(y_train.values[1:])
 
     X_train, X_test = feature_selection(X_train, y_train, X_test)
 

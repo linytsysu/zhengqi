@@ -19,10 +19,8 @@ def rmsle_cv(model=None, X_train=None, y_train=None):
                            scoring="neg_mean_squared_error", cv = kf)
     return (rmse)
 
-# NOTE: Make sure that the outcome column is labeled 'target' in the data file
 X_train, y_train, X_test = get_data()
 
-# Average CV score on the training set was: -0.12308713615450177
 exported_pipeline = make_pipeline(
     StackingEstimator(estimator=SGDRegressor(alpha=0.01, eta0=0.1, fit_intercept=True, l1_ratio=1.0, learning_rate="constant", loss="epsilon_insensitive", penalty="elasticnet", power_t=10.0)),
     StackingEstimator(estimator=SGDRegressor(alpha=0.0, eta0=0.01, fit_intercept=False, l1_ratio=0.0, learning_rate="invscaling", loss="epsilon_insensitive", penalty="elasticnet", power_t=0.1)),
@@ -30,7 +28,7 @@ exported_pipeline = make_pipeline(
     StackingEstimator(estimator=ExtraTreesRegressor(bootstrap=False, max_features=0.8, min_samples_leaf=11, min_samples_split=6, n_estimators=100)),
     LinearSVR(C=0.01, dual=True, epsilon=0.0001, loss="epsilon_insensitive", tol=0.01)
 )
-# Fix random state for all the steps in exported pipeline
+
 set_param_recursive(exported_pipeline.steps, 'random_state', 42)
 
 score = rmsle_cv(exported_pipeline, X_train, y_train)
