@@ -80,7 +80,6 @@ def feature_selection(X_train, y_train, X_test):
         })
     feature_scoring = feature_scoring.sort_values('score', ascending=False).reset_index(drop=True)
     feat_scored_headnum = feature_scoring.head(head_feature_num)['feature']
-    print(feat_scored_headnum)
     X_train = X_train[X_train.columns[X_train.columns.isin(feat_scored_headnum)]]
     X_test = X_test[X_test.columns[X_test.columns.isin(feat_scored_headnum)]]
 
@@ -106,7 +105,7 @@ def get_data():
     X_train, y_train = load_train_data()
     X_test = load_test_data()
 
-    feature_test(X_train, y_train, X_test)
+    # feature_test(X_train, y_train, X_test)
 
     all_data = pd.concat([X_train, X_test])
     all_data = feature_preprocess(all_data)
